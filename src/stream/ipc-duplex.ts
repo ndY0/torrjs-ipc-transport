@@ -3,6 +3,7 @@ import NodeIPC from "node-ipc";
 
 class IpcDuplex extends Duplex {
   private ipc = NodeIPC;
+  private readMode: boolean = false;
   constructor(queueSize: number, private streamKey: string) {
     super({
       objectMode: true,
@@ -10,14 +11,18 @@ class IpcDuplex extends Duplex {
       autoDestroy: false,
       emitClose: false,
     });
-    this.ipc.connectTo(this.ipc.config.id, () => {
-      this.ipc.of[this.ipc.config.id].on(this.streamKey, (data: any) => {
-        this.push(data);
-      });
-    });
   }
 
-  _read() {}
+  _read() {
+    if (!this.readMode) {
+      this.readMode = true;
+      this.ipc.connectTo(this.ipc.config.id, () => {
+        this.ipc.of[this.ipc.config.id].on(this.streamKey, (data: any) => {
+          this.push(data);
+        });
+      });
+    }
+  }
 
   _write(data: any, _encoding: any, callback: (err?: Error) => void) {
     this.ipc.of[this.ipc.config.id].emit("event", {
