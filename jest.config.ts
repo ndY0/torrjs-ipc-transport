@@ -14,6 +14,7 @@ const config: Config.InitialOptions = {
   testMatch: ["**/src/**/?(*.)+(spec|test).[jt]s?(x)"],
   testPathIgnorePatterns: ["/lib/", "/node_modules/"],
   setupFilesAfterEnv: ["./jest.setup.ts"],
+  transformIgnorePatterns: ["node_modules/(?!(torrjs-core)/)"],
 };
 
 export default config;

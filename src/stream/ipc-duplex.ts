@@ -11,21 +11,21 @@ class IpcDuplex extends Duplex {
       autoDestroy: false,
       emitClose: false,
     });
+    this.ipc.connectTo("server", () => {});
   }
 
   _read() {
     if (!this.readMode) {
       this.readMode = true;
-      this.ipc.connectTo(this.ipc.config.id, () => {
-        this.ipc.of[this.ipc.config.id].on(this.streamKey, (data: any) => {
-          this.push(data);
-        });
+      this.ipc.of.server.emit("register", this.streamKey);
+      this.ipc.of.server.on(this.streamKey, (data: any) => {
+        this.push(data);
       });
     }
   }
 
   _write(data: any, _encoding: any, callback: (err?: Error) => void) {
-    this.ipc.of[this.ipc.config.id].emit("event", {
+    this.ipc.of.server.emit("event", {
       data,
       event: this.streamKey,
     });
@@ -33,7 +33,7 @@ class IpcDuplex extends Duplex {
   }
 
   _destroy(err: Error | null, callback: (err: Error | null) => void) {
-    this.ipc.disconnect(this.ipc.config.id);
+    this.ipc.of.server.emit("disconnect", this.streamKey);
     callback(null);
   }
 }
