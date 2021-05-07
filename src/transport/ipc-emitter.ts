@@ -34,7 +34,7 @@ class IpcEmitter implements TransportEmitter {
       event,
       canceler,
     }: {
-      timeout?: number | Promise<boolean>;
+      timeout?: number | Promise<any>;
       event: string;
       canceler: Generator<[boolean, EventEmitter], never, boolean>;
     },

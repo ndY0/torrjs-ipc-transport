@@ -13,7 +13,7 @@ async function promisify<Treturn>(
 
 function cure<Tfirst, Trest, Treturn>(
   fn: (...args: [Tfirst, ...Trest[]]) => Treturn,
-  context: any = null
+  context: any
 ): (first: Tfirst) => (...args: Trest[]) => Treturn {
   return (first: Tfirst) => (...args: Trest[]) =>
     fn.call(context, first, ...args);

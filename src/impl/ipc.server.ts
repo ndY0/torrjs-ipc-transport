@@ -121,11 +121,6 @@ abstract class IpcServer extends GenServer {
       ),
     ]);
   }
-  @handle("start")
-  private async *handleStartServer(state: typeof NodeIPC) {
-    state.server.start();
-    return { type: ReplyTypes.NO_REPLY, newState: state };
-  }
   @handle("stop")
   private async *handleStopServer(state: typeof NodeIPC) {
     state.server.stop();
@@ -141,14 +136,6 @@ abstract class IpcServer extends GenServer {
       data,
     });
     return { type: ReplyTypes.NO_REPLY, newState: state };
-  }
-
-  public static async *startServer<T extends typeof IpcServer>(
-    target: T,
-    serverId: string,
-    transport?: string
-  ) {
-    yield* GenServer.cast([target, serverId, transport], "start");
   }
   public static async *stopServer<T extends typeof IpcServer>(
     target: T,

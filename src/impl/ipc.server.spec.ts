@@ -6,53 +6,26 @@ import NodeIPC from "node-ipc";
 import { ServerExtension } from "../annotations/server-extension";
 import { keyForSocketMap } from "../utils/symbols";
 
-@ServerExtension(new InMemoryEmitter(10))
+@ServerExtension(new InMemoryEmitter(10), { test: new InMemoryEmitter(10) })
 class TestIpcServer extends IpcServer {}
 
 describe("IpcServer", () => {
-  describe("startServer", () => {
-    it("should start the embedded state server", async () => {
-      const ipcServer = new TestIpcServer();
-      const canceler = memo(true);
-      const cancelerPromise = getMemoPromise(canceler);
-      const startSpy = jest.spyOn(ipcServer, "handleStartServer");
-      await Promise.all([
-        ipcServer.start([], TestIpcServer, canceler, cancelerPromise).next(),
-        (async () => {
-          await TestIpcServer.startServer(
-            TestIpcServer,
-            ipcServer[keyForIdSymbol]
-          ).next();
-          await delay(3_000);
-          putMemoValue(canceler, false);
-          expect(startSpy).toBeCalledTimes(1);
-        })(),
-      ]);
-    });
-  });
   describe("stopServer", () => {
     it("should stop the embedded state server", async () => {
       const ipcServer = new TestIpcServer();
       const canceler = memo(true);
       const cancelerPromise = getMemoPromise(canceler);
       const stopSpy = jest.spyOn(ipcServer, "handleStopServer");
-      await Promise.all([
-        ipcServer.start([], TestIpcServer, canceler, cancelerPromise).next(),
-        (async () => {
-          await TestIpcServer.startServer(
-            TestIpcServer,
-            ipcServer[keyForIdSymbol]
-          ).next();
-          await delay(3_000);
-          await TestIpcServer.stopServer(
-            TestIpcServer,
-            ipcServer[keyForIdSymbol]
-          ).next();
-          await delay(3_000);
-          putMemoValue(canceler, false);
-          expect(stopSpy).toBeCalledTimes(1);
-        })(),
-      ]);
+      ipcServer.start([], TestIpcServer, canceler, cancelerPromise).next();
+      await delay(3_000);
+      await TestIpcServer.stopServer(
+        TestIpcServer,
+        ipcServer[keyForIdSymbol]
+      ).next();
+      await delay(3_000);
+      expect(stopSpy).toBeCalledTimes(1);
+      await delay(500);
+      putMemoValue(canceler, false);
     });
   });
   describe("emitServer", () => {
@@ -65,10 +38,6 @@ describe("IpcServer", () => {
       await Promise.all([
         ipcServer.start([], TestIpcServer, canceler, cancelerPromise).next(),
         (async () => {
-          await TestIpcServer.startServer(
-            TestIpcServer,
-            ipcServer[keyForIdSymbol]
-          ).next();
           await delay(3_000);
           NodeIPC.connectTo("server", () => {
             NodeIPC.of.server.on("connect", () => {
